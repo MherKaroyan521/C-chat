@@ -14,18 +14,14 @@
 int main(){
 	int server_fd;
 	int new_client;
-	int client_sockets[MAX_CLIENTS];
+	int client_sockets[MAX_CLIENTS] = {0};
 	struct sockaddr_in address;
 	socklen_t addrlen = sizeof(address);
 	char buffer[1024];
 	fd_set readfds;
 
-	for(int i = 0; i < MAX_CLIENTS; i++){
-		client_sockets[i] = 0;
-	}
-
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if(!server_fd){
+	if(server_fd == 0){
 		perror("Socket Failed");
 		exit(EXIT_FAILURE);
 	}
@@ -46,10 +42,9 @@ int main(){
 
 		for(int i = 0; i < MAX_CLIENTS; i++){
 			int fd = client_sockets[i];
-			if(fd > 0)
+			if(fd > 0){
 				FD_SET(fd, &readfds);
-			else
-				break;
+			}
 
 			if(fd > max_fd)
 				max_fd = fd;
@@ -58,11 +53,11 @@ int main(){
 		if(FD_ISSET(server_fd, &readfds)){
 			new_client = accept(server_fd, (struct sockaddr *)&address, &addrlen);
 			printf("New connection: Socket id: %d, IP: %s\n", new_client, inet_ntoa(address.sin_addr));
-		}
-		for(int i = 0; i < MAX_CLIENTS; i++){
-			if(client_sockets[i] == 0){
-				client_sockets[i] = new_client;
-				break;
+			for(int i = 0; i < MAX_CLIENTS; i++){
+				if(client_sockets[i] == 0){
+					client_sockets[i] = new_client;
+					break;
+				}
 			}
 		}
 		for(int i = 0; i < MAX_CLIENTS; i++){
